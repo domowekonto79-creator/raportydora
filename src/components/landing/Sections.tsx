@@ -479,10 +479,10 @@ export function Footer() {
           {details.length > 0 && <p>{details.join(" · ")}</p>}
         </div>
         <div className="flex gap-6">
-          <Link to="/polityka-prywatnosci" className="hover:text-ink-foreground">
+          <a href={SITE.privacyUrl} className="hover:text-ink-foreground">
             Polityka prywatności
-          </Link>
-          <span>© {new Date().getFullYear()}</span>
+          </a>
+          <span>© {new Date().getFullYear()} Secureside</span>
         </div>
       </div>
     </footer>
