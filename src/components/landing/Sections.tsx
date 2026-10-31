@@ -27,6 +27,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { FORM_GROUPS, KNF_FORMS_SOURCE_URL } from "@/lib/dora-forms";
 import { SITE } from "@/lib/site";
 import { SheetMockup } from "./SheetMockup";
 
@@ -72,8 +73,9 @@ export function Hero() {
             <span className="text-accent-gradient">bez obciążania Twojego zespołu.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg text-ink-muted">
-            Przygotowujemy formularze SPR-PF (m.in. 18, 26, 27, 01) i realizujemy czynności
-            wynikające z Twoich polityk i procedur. Ty zatwierdzasz — my wykonujemy pracę.
+            Przygotowujemy ankiety KRI (SPR-PF-26, 27), rejestr informacji (SPR-PF-18), sprawozdanie
+            o ramach ryzyka ICT (SPR-PF-01) i inne formularze SPR-PF oraz realizujemy czynności
+            z Twoich polityk i procedur. Ty zatwierdzasz — my wykonujemy pracę.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="hero" size="xl">
@@ -110,7 +112,7 @@ const PAINS = [
   {
     icon: AlarmClock,
     title: "Terminy KNF nie czekają",
-    text: "Sprawozdania kwartalne i aktualizacje rejestru wracają cyklicznie, a zespół ma też inne obowiązki.",
+    text: "Ankiety KRI wracają co kwartał i co rok, a rejestr informacji KNF może zażądać w każdej chwili.",
   },
   {
     icon: FileSpreadsheet,
@@ -153,52 +155,60 @@ export function Problems() {
 
 const REPORTS = [
   {
+    code: "SPR-PF-26",
+    title: "Ankieta KRI kwartalna",
+    tag: "Obligatoryjnie · kwartalnie",
+    who: "Podmioty stosujące pełne ramy zarządzania ryzykiem ICT",
+    text: "Kwartalne sprawozdanie dotyczące kluczowych wskaźników ryzyka (KRI) dla obszaru ICT.",
+    tasks: [
+      "Zbieranie danych od właścicieli procesów",
+      "Wyliczenie wskaźników KRI",
+      "Kontrola spójności z poprzednimi kwartałami",
+      "Przygotowanie formularza do wysyłki",
+    ],
+    related: null,
+  },
+  {
+    code: "SPR-PF-27",
+    title: "Ankieta KRI roczna",
+    tag: "Obligatoryjnie · corocznie",
+    who: "Podmioty stosujące pełne ramy zarządzania ryzykiem ICT",
+    text: "Roczne sprawozdanie dotyczące kluczowych wskaźników ryzyka (KRI) dla obszaru ICT.",
+    tasks: [
+      "Mapowanie źródeł danych na cały rok",
+      "Uzupełnienie i opis wskaźników",
+      "Uzgodnienie z danymi kwartalnymi",
+      "Walidacja przed przekazaniem",
+    ],
+    related: "SPR-PF-30 — ankieta roczna dla podmiotów z uproszczonymi ramami",
+  },
+  {
     code: "SPR-PF-18",
     title: "Pełny rejestr informacji",
-    tag: "Rejestr umów ICT",
-    text: "Rejestr ustaleń umownych dotyczących korzystania z usług ICT świadczonych przez zewnętrznych dostawców.",
+    tag: "Na żądanie KNF",
+    who: "Wszystkie podmioty finansowe",
+    text: "Rejestr umów o usługi ICT od zewnętrznych dostawców — w pełnym zakresie lub w zakresie wskazanym w żądaniu.",
     tasks: [
       "Inwentaryzacja umów i dostawców ICT",
       "Uzupełnienie arkuszy rejestru",
       "Weryfikacja identyfikatorów (np. LEI)",
-      "Aktualizacja po zmianach w umowach",
+      "Utrzymanie rejestru w gotowości na żądanie",
     ],
-  },
-  {
-    code: "SPR-PF-26",
-    title: "Kwartalny raport mierników ryzyka",
-    tag: "KRI · kwartalnie",
-    text: "Cykliczne raportowanie mierników ryzyka (KRI) w obszarze ICT.",
-    tasks: [
-      "Zbieranie danych od właścicieli procesów",
-      "Wyliczenie mierników",
-      "Kontrola spójności z poprzednimi okresami",
-      "Przygotowanie formularza do wysyłki",
-    ],
-  },
-  {
-    code: "SPR-PF-27",
-    title: "Mierniki ryzyka",
-    tag: "KRI",
-    text: "Formularz mierników ryzyka przygotowany zgodnie z aktualną wersją formularza i instrukcji KNF.",
-    tasks: [
-      "Mapowanie źródeł danych",
-      "Uzupełnienie i opis mierników",
-      "Walidacja przed przekazaniem",
-      "Archiwum wersji i założeń",
-    ],
+    related: "SPR-PF-17 (raz w roku), SPR-PF-19 i 20 (14 dni)",
   },
   {
     code: "SPR-PF-01",
-    title: "Regulacje wewnętrzne i ramy ryzyka ICT",
-    tag: "Polityki i procedury",
-    text: "Wykaz obowiązujących regulacji wewnętrznych i dokumentacji składającej się na ramy zarządzania ryzykiem ICT.",
+    title: "Ryzyko ICT i ramy zarządzania ryzykiem ICT",
+    tag: "Na żądanie KNF",
+    who: "Wszystkie podmioty finansowe",
+    text: "Informacje na temat ryzyka ICT oraz ram zarządzania ryzykiem ICT — polityk, procedur i narzędzi.",
     tasks: [
-      "Inwentaryzacja polityk i procedur",
-      "Przypisanie do obszarów ram ryzyka ICT",
+      "Zestawienie polityk i procedur ICT",
+      "Przypisanie do elementów ram ryzyka ICT",
       "Uzupełnienie arkuszy formularza",
       "Aktualizacja po zmianach dokumentów",
     ],
+    related: "SPR-PF-02 i 06 — przeglądy ram zarządzania ryzykiem ICT",
   },
 ];
 
@@ -214,7 +224,7 @@ export function Reports() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               Pracujemy na plikach Excel w wersji wymaganej przez KNF. Dostajesz kompletny,
-              sprawdzony formularz gotowy do przekazania.
+              sprawdzony formularz gotowy do przekazania — w terminie cyklicznym albo z żądania.
             </p>
           </div>
           <Button asChild variant="brand" size="lg" className="self-start lg:self-auto">
@@ -228,7 +238,7 @@ export function Reports() {
               key={r.code}
               className="group flex flex-col rounded-2xl border bg-card p-6 shadow-soft transition-shadow hover:shadow-float sm:p-8"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <span className="font-mono text-2xl font-semibold text-primary sm:text-3xl">
                   {r.code}
                 </span>
@@ -238,6 +248,9 @@ export function Reports() {
               </div>
               <h3 className="mt-4 text-lg font-semibold">{r.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{r.text}</p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">Dotyczy:</span> {r.who}
+              </p>
               <ul className="mt-6 grid gap-2 border-t pt-5 text-sm">
                 {r.tasks.map((t) => (
                   <li key={t} className="flex items-start gap-2">
@@ -246,19 +259,67 @@ export function Reports() {
                   </li>
                 ))}
               </ul>
+              {r.related && (
+                <p className="mt-5 rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Powiązane:</span> {r.related}
+                </p>
+              )}
             </article>
           ))}
         </div>
 
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          Potrzebujesz innych formularzy SPR-PF?{" "}
-          <a href="#kontakt" className="font-medium text-teal underline-offset-4 hover:underline">
-            Zapytaj o pełny zakres
-          </a>
-          .
-        </p>
+        <AllForms />
       </div>
     </section>
+  );
+}
+
+function AllForms() {
+  const total = FORM_GROUPS.reduce((n, g) => n + g.forms.length, 0);
+  return (
+    <div className="mt-10 rounded-2xl border bg-card shadow-soft">
+      <Accordion type="single" collapsible>
+        <AccordionItem value="all" className="border-b-0">
+          <AccordionTrigger className="px-6 py-5 text-left text-base font-semibold hover:no-underline sm:px-8">
+            Pełne zestawienie formularzy DORA ({total}) — zapytaj o wsparcie w każdym z nich
+          </AccordionTrigger>
+          <AccordionContent className="px-6 pb-6 sm:px-8">
+            <div className="grid gap-8">
+              {FORM_GROUPS.map((g) => (
+                <div key={g.title}>
+                  <h4 className="eyebrow text-teal">{g.title}</h4>
+                  <ul className="mt-3 divide-y border-y">
+                    {g.forms.map((f) => (
+                      <li
+                        key={f.code}
+                        className="grid gap-1 py-3 text-sm sm:grid-cols-[6.5rem_1fr_13rem] sm:items-baseline sm:gap-4"
+                      >
+                        <span className="font-mono font-semibold text-primary">{f.code}</span>
+                        <span>{f.name}</span>
+                        <span className="font-mono text-[11px] text-muted-foreground sm:text-right">
+                          {f.obligation} · {f.when}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 text-xs text-muted-foreground">
+              Źródło:{" "}
+              <a
+                href={KNF_FORMS_SOURCE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-teal underline underline-offset-4"
+              >
+                KNF — zestawienie obowiązków i formularzy sprawozdawczych DORA
+              </a>
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
   );
 }
 
