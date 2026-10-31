@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import {
   AlarmClock,
   ArrowRight,
@@ -27,21 +26,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import logoAsset from "@/assets/secureside-logo.svg.asset.json";
 import { FORM_GROUPS, KNF_FORMS_SOURCE_URL } from "@/lib/dora-forms";
 import { SITE } from "@/lib/site";
 import { SheetMockup } from "./SheetMockup";
 
-function Logo({ inverted = false }: { inverted?: boolean }) {
+// The Secureside logo is the light version (white lettering) — only place it on dark backgrounds.
+function Logo() {
   return (
-    <span className="flex items-center gap-2">
-      <span className="flex size-8 items-center justify-center rounded-md bg-accent-gradient font-mono text-xs font-bold text-ink">
-        D
-      </span>
-      <span
-        className={`font-display text-sm font-semibold tracking-tight ${
-          inverted ? "text-ink-foreground" : "text-foreground"
-        }`}
-      >
+    <span className="flex items-center gap-3">
+      <img src={logoAsset.url} alt="Secureside" width={156} height={35} className="h-7 w-auto sm:h-8" />
+      <span className="hidden border-l border-ink-foreground/25 pl-3 font-mono text-xs uppercase tracking-wider text-ink-muted sm:inline">
         {SITE.brand}
       </span>
     </span>
@@ -52,9 +47,9 @@ export function Header() {
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <Logo inverted />
+        <Logo />
         <Button asChild variant="heroOutline" size="sm">
-          <a href="#kontakt">Bezpłatna konsultacja</a>
+          <a href={SITE.contactUrl}>Bezpłatna konsultacja</a>
         </Button>
       </div>
     </header>
@@ -79,7 +74,7 @@ export function Hero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="hero" size="xl">
-              <a href="#kontakt">
+              <a href={SITE.contactUrl}>
                 Umów bezpłatną konsultację <ArrowRight />
               </a>
             </Button>
@@ -228,7 +223,7 @@ export function Reports() {
             </p>
           </div>
           <Button asChild variant="brand" size="lg" className="self-start lg:self-auto">
-            <a href="#kontakt">Zapytaj o swój zakres</a>
+            <a href={SITE.contactUrl}>Zapytaj o swój zakres</a>
           </Button>
         </div>
 
@@ -479,14 +474,14 @@ export function Footer() {
     <footer className="bg-ink text-ink-muted">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
-          <Logo inverted />
+          <Logo />
           {details.length > 0 && <p>{details.join(" · ")}</p>}
         </div>
         <div className="flex gap-6">
-          <Link to="/polityka-prywatnosci" className="hover:text-ink-foreground">
+          <a href={SITE.privacyUrl} className="hover:text-ink-foreground">
             Polityka prywatności
-          </Link>
-          <span>© {new Date().getFullYear()}</span>
+          </a>
+          <span>© {new Date().getFullYear()} Secureside</span>
         </div>
       </div>
     </footer>
