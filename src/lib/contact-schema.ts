@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 export const REPORT_OPTIONS = [
+  { id: "spr-pf-26", label: "SPR-PF-26 – ankieta KRI kwartalna" },
+  { id: "spr-pf-27", label: "SPR-PF-27 – ankieta KRI roczna" },
+  { id: "spr-pf-30", label: "SPR-PF-30 – KRI roczna (uproszczone ramy)" },
   { id: "spr-pf-18", label: "SPR-PF-18 – rejestr informacji" },
-  { id: "spr-pf-26", label: "SPR-PF-26 – kwartalne mierniki ryzyka" },
-  { id: "spr-pf-27", label: "SPR-PF-27 – mierniki ryzyka" },
-  { id: "spr-pf-01", label: "SPR-PF-01 – regulacje wewnętrzne ICT" },
+  { id: "spr-pf-01", label: "SPR-PF-01 – ryzyko i ramy ICT" },
   { id: "procedury", label: "Czynności z polityk i procedur" },
   { id: "inne", label: "Inne sprawozdania DORA" },
 ] as const;
