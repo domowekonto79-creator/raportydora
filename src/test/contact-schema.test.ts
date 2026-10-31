@@ -25,4 +25,8 @@ describe("contact form rules", () => {
   it("rejects an unknown report choice", () => {
     expect(contactSchema.safeParse({ ...valid, reports: ["spr-pf-99"] }).success).toBe(false);
   });
+
+  it("accepts SPR-PF-30 (KRI for simplified ICT framework) as a report choice", () => {
+    expect(contactSchema.safeParse({ ...valid, reports: ["spr-pf-30"] }).success).toBe(true);
+  });
 });

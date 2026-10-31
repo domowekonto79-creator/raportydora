@@ -436,7 +436,7 @@ const FAQ = [
   },
   {
     q: "Jakie raporty obejmuje usługa?",
-    a: "Najczęściej SPR-PF-18 (pełny rejestr informacji), SPR-PF-26 i SPR-PF-27 (mierniki ryzyka) oraz SPR-PF-01 (regulacje wewnętrzne i ramy zarządzania ryzykiem ICT). Zakres dopasowujemy do Twojej instytucji — zapytaj o inne formularze.",
+    a: "Najczęściej ankiety KRI: SPR-PF-26 (kwartalna) i SPR-PF-27 (roczna) lub SPR-PF-30 przy uproszczonych ramach, a także SPR-PF-18 (pełny rejestr informacji, na żądanie KNF) i SPR-PF-01 (ryzyko ICT i ramy zarządzania ryzykiem ICT, na żądanie). Zakres dopasowujemy do Twojej instytucji — zapytaj o pozostałe formularze z zestawienia KNF.",
   },
   {
     q: "Kto przekazuje sprawozdanie do KNF?",

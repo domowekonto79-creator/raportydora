@@ -15,9 +15,9 @@ import {
 } from "@/components/landing/Sections";
 import { captureAttribution } from "@/lib/attribution";
 
-const TITLE = "DORA as a Service – raportowanie do KNF (SPR-PF-18, 26, 27, 01)";
+const TITLE = "DORA as a Service – sprawozdania do KNF (SPR-PF-26, 27, 18, 01)";
 const DESCRIPTION =
-  "Outsourcing obowiązków DORA: przygotowanie formularzy SPR-PF do KNF i realizacja czynności z polityk i procedur. Umów bezpłatną konsultację.";
+  "Outsourcing obowiązków DORA: ankiety KRI, rejestr informacji i inne formularze SPR-PF do KNF oraz czynności z polityk i procedur. Umów bezpłatną konsultację.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
