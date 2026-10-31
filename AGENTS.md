@@ -13,7 +13,6 @@
 
 - Landing page sections live in `src/components/landing/`; the index route only composes them — keeps the ad landing page easy to clone into keyword-specific variants.
 - Company contact details live only in `src/lib/site.ts`; empty values are hidden in the UI — so the owner can fill them in one place.
-- Contact form validation is one shared zod schema (`src/lib/contact-schema.ts`) used by both the browser and the server function — rules cannot drift.
-- Enquiries are inserted by a server function with the publishable key under an anon INSERT-only RLS policy; anon has no SELECT — visitors can never read leads.
-- After a successful enquiry the visitor is sent to `/dziekujemy` — this page is the ad-conversion signal, keep it noindex.
-- Ad attribution (UTM, gclid) is captured into sessionStorage on landing and saved with each enquiry — shows which ad produced each lead.
+- Enquiries go to the external Secureside contact page (`SITE.contactUrl` in `src/lib/site.ts`); its form already emails the owner and cannot be embedded (iframe blocked, Cloudflare Turnstile) — keep every CTA pointing at that one value.
+- The original on-page form (`ContactForm`, `contact.functions.ts`, `contact-schema.ts`, `/dziekujemy`, `attribution.ts`) is parked, not rendered — kept so it can be re-enabled without rebuilding the lead table flow.
+- The Secureside logo asset is the light version (white lettering) — place it only on dark backgrounds.
