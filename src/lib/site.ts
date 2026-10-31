@@ -6,4 +6,6 @@ export const SITE = {
   companyAddress: "",
   email: "",
   phone: "",
+  // Every "consultation" button on the page leads here; the Secureside form sends the enquiry email.
+  contactUrl: "https://secureside.pl/kontakt/",
 };

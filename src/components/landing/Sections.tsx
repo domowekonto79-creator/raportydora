@@ -27,21 +27,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import logoAsset from "@/assets/secureside-logo.svg.asset.json";
 import { FORM_GROUPS, KNF_FORMS_SOURCE_URL } from "@/lib/dora-forms";
 import { SITE } from "@/lib/site";
 import { SheetMockup } from "./SheetMockup";
 
-function Logo({ inverted = false }: { inverted?: boolean }) {
+// The Secureside logo is the light version (white lettering) — only place it on dark backgrounds.
+function Logo() {
   return (
-    <span className="flex items-center gap-2">
-      <span className="flex size-8 items-center justify-center rounded-md bg-accent-gradient font-mono text-xs font-bold text-ink">
-        D
-      </span>
-      <span
-        className={`font-display text-sm font-semibold tracking-tight ${
-          inverted ? "text-ink-foreground" : "text-foreground"
-        }`}
-      >
+    <span className="flex items-center gap-3">
+      <img src={logoAsset.url} alt="Secureside" width={156} height={35} className="h-7 w-auto sm:h-8" />
+      <span className="hidden border-l border-ink-foreground/25 pl-3 font-mono text-xs uppercase tracking-wider text-ink-muted sm:inline">
         {SITE.brand}
       </span>
     </span>
@@ -52,9 +48,9 @@ export function Header() {
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <Logo inverted />
+        <Logo />
         <Button asChild variant="heroOutline" size="sm">
-          <a href="#kontakt">Bezpłatna konsultacja</a>
+          <a href={SITE.contactUrl}>Bezpłatna konsultacja</a>
         </Button>
       </div>
     </header>
