@@ -75,7 +75,7 @@ export function Hero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="hero" size="xl">
-              <a href="#kontakt">
+              <a href={SITE.contactUrl}>
                 Umów bezpłatną konsultację <ArrowRight />
               </a>
             </Button>
@@ -224,7 +224,7 @@ export function Reports() {
             </p>
           </div>
           <Button asChild variant="brand" size="lg" className="self-start lg:self-auto">
-            <a href="#kontakt">Zapytaj o swój zakres</a>
+            <a href={SITE.contactUrl}>Zapytaj o swój zakres</a>
           </Button>
         </div>
 
@@ -475,7 +475,7 @@ export function Footer() {
     <footer className="bg-ink text-ink-muted">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
-          <Logo inverted />
+          <Logo />
           {details.length > 0 && <p>{details.join(" · ")}</p>}
         </div>
         <div className="flex gap-6">

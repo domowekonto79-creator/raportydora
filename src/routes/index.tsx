@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ContactForm } from "@/components/landing/ContactForm";
+import { ContactCta } from "@/components/landing/ContactCta";
 import {
   Audience,
   Faq,
@@ -15,7 +15,7 @@ import {
 } from "@/components/landing/Sections";
 import { captureAttribution } from "@/lib/attribution";
 
-const TITLE = "DORA as a Service – sprawozdania do KNF (SPR-PF-26, 27, 18, 01)";
+const TITLE = "DORA as a Service – sprawozdania do KNF (SPR-PF-26, 27, 18, 01) | Secureside";
 const DESCRIPTION =
   "Outsourcing obowiązków DORA: ankiety KRI, rejestr informacji i inne formularze SPR-PF do KNF oraz czynności z polityk i procedur. Umów bezpłatną konsultację.";
 
@@ -49,7 +49,7 @@ function Index() {
         <Process />
         <Audience />
         <Faq />
-        <ContactForm />
+        <ContactCta />
       </main>
       <Footer />
     </div>
