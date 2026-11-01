@@ -26,7 +26,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import logoAsset from "@/assets/secureside-logo.svg.asset.json";
+// Bundled in the repo (not a Lovable CDN asset) so it also works on Vercel.
+import logoUrl from "@/assets/secureside-logo.svg";
 import { FORM_GROUPS, KNF_FORMS_SOURCE_URL } from "@/lib/dora-forms";
 import { SITE } from "@/lib/site";
 import { SheetMockup } from "./SheetMockup";
@@ -35,7 +36,7 @@ import { SheetMockup } from "./SheetMockup";
 function Logo() {
   return (
     <span className="flex items-center gap-3">
-      <img src={logoAsset.url} alt="Secureside" width={156} height={35} className="h-7 w-auto sm:h-8" />
+      <img src={logoUrl} alt="Secureside" width={156} height={35} className="h-7 w-auto sm:h-8" />
       <span className="hidden border-l border-ink-foreground/25 pl-3 font-mono text-xs uppercase tracking-wider text-ink-muted sm:inline">
         {SITE.brand}
       </span>

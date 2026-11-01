@@ -16,3 +16,4 @@
 - Enquiries go to the external Secureside contact page (`SITE.contactUrl` in `src/lib/site.ts`); its form already emails the owner and cannot be embedded (iframe blocked, Cloudflare Turnstile) — keep every CTA pointing at that one value.
 - The original on-page form (`ContactForm`, `contact.functions.ts`, `contact-schema.ts`, `/dziekujemy`, `attribution.ts`) is parked, not rendered — kept so it can be re-enabled without rebuilding the lead table flow.
 - The Secureside logo asset is the light version (white lettering) — place it only on dark backgrounds.
+- Images the site shows are bundled files in `src/assets/` (imported via Vite), not Lovable CDN `.asset.json` pointers — the site is also deployed to Vercel, where `/__l5e/assets-v1/` URLs do not exist.
