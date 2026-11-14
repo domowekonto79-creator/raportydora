@@ -13,23 +13,50 @@ export function ContactCta() {
           Porozmawiajmy o Twoich obowiązkach DORA
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-ink-muted">
-          Napisz do nas przez formularz kontaktowy Secureside i wspomnij, które raporty Cię dotyczą.
-          Odezwiemy się, żeby ustalić termin krótkiej rozmowy i przygotować ofertę.
+          Napisz, które raporty lub zadania chcesz nam przekazać. Ustalimy zakres, dostępność danych
+          i wycenę.
         </p>
         <ul className="mx-auto mt-8 flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm text-ink-muted">
-          {["Bez zobowiązań", "Wycena dopasowana do zakresu", "Raporty i czynności w jednym miejscu"].map(
-            (t) => (
-              <li key={t} className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-seaglass" /> {t}
-              </li>
-            ),
-          )}
+          {[
+            "Bez zobowiązań",
+            "Wycena dopasowana do zakresu",
+            "Raporty i czynności w jednym miejscu",
+          ].map((t) => (
+            <li key={t} className="flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-seaglass" /> {t}
+            </li>
+          ))}
         </ul>
         <Button asChild variant="hero" size="xl" className="mt-10">
           <a href={SITE.contactUrl}>
             Przejdź do formularza kontaktowego <ArrowRight />
           </a>
         </Button>
+      </div>
+      <div className="relative mx-auto max-w-6xl px-5 pb-7">
+        <p className="mt-6 text-sm text-ink-muted">
+          Uzupełnij zakres:{" "}
+          <a
+            className="underline underline-offset-4"
+            href="https://secureside.pl/uslugi/zgodnosc-z-dora-nis2-knf/"
+          >
+            Szersza obsługa DORA ↗
+          </a>{" "}
+          ·{" "}
+          <a
+            className="underline underline-offset-4"
+            href="https://secureside.pl/uslugi/audyty-bezpieczenstwa/"
+          >
+            Audyty ↗
+          </a>{" "}
+          ·{" "}
+          <a
+            className="underline underline-offset-4"
+            href="https://secureside.pl/uslugi/szkolenia/"
+          >
+            Szkolenia ↗
+          </a>
+        </p>
       </div>
     </section>
   );

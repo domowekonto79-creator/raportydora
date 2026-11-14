@@ -75,8 +75,10 @@ export function SheetMockup() {
           <CheckCircle2 className="size-4 text-success" aria-hidden />
         </span>
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-foreground">Walidacja zakończona</p>
-          <p className="font-mono text-[11px] text-muted-foreground">0 błędów · gotowe do wysyłki</p>
+          <p className="text-sm font-semibold text-foreground">Przykładowy widok</p>
+          <p className="font-mono text-[11px] text-muted-foreground">
+            Rejestr informacji · dane demonstracyjne
+          </p>
         </div>
       </div>
     </div>

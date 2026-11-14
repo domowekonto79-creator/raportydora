@@ -1,3 +1,4 @@
+import { PrivacySettingsButton } from "./Analytics";
 import {
   AlarmClock,
   ArrowRight,
@@ -69,9 +70,9 @@ export function Hero() {
             <span className="text-accent-gradient">bez obciążania Twojego zespołu.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg text-ink-muted">
-            Przygotowujemy ankiety KRI (SPR-PF-26, 27), rejestr informacji (SPR-PF-18), sprawozdanie
-            o ramach ryzyka ICT (SPR-PF-01) i inne formularze SPR-PF oraz realizujemy czynności
-            z Twoich polityk i procedur. Ty zatwierdzasz — my wykonujemy pracę.
+            Przygotowujemy formularze SPR-PF i rejestr informacji, zbieramy dane oraz sprawdzamy
+            spójność raportów. Prowadzimy harmonogramy testów odporności i opracowujemy raporty dla
+            zarządu. Ty zatwierdzasz — my wykonujemy uzgodnione prace.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="hero" size="xl">
@@ -219,8 +220,9 @@ export function Reports() {
               Formularze SPR-PF, którymi się zajmujemy
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Pracujemy na plikach Excel w wersji wymaganej przez KNF. Dostajesz kompletny,
-              sprawdzony formularz gotowy do przekazania — w terminie cyklicznym albo z żądania.
+              Pracujemy na aktualnych formularzach wymaganych przez KNF. Przygotowujemy i sprawdzamy
+              raporty cykliczne, na żądanie i po zdarzeniu — zgodnie z obowiązkami Twojej
+              instytucji.
             </p>
           </div>
           <Button asChild variant="brand" size="lg" className="self-start lg:self-auto">
@@ -320,12 +322,36 @@ function AllForms() {
 }
 
 const PROCEDURES = [
-  { icon: FolderSearch, title: "Przeglądy polityk i procedur", text: "Okresowe przeglądy dokumentów ICT i przygotowanie aktualizacji." },
-  { icon: Layers, title: "Aktualizacja rejestrów", text: "Inwentaryzacje aktywów, dostawców i umów zgodnie z Twoimi procedurami." },
-  { icon: ShieldCheck, title: "Dokumentowanie incydentów", text: "Ewidencja i klasyfikacja zdarzeń ICT według przyjętych zasad." },
-  { icon: CalendarClock, title: "Harmonogramy i testy", text: "Pilnowanie terminów cyklicznych zadań i dokumentacji testów." },
-  { icon: Gauge, title: "Zestawienia dla zarządu", text: "Czytelne podsumowania stanu zgodności i mierników." },
-  { icon: FileCheck2, title: "Dowody na audyt i kontrolę", text: "Uporządkowana dokumentacja wykonanych czynności." },
+  {
+    icon: FolderSearch,
+    title: "Przeglądy polityk i procedur",
+    text: "Okresowe przeglądy dokumentów ICT i przygotowanie aktualizacji.",
+  },
+  {
+    icon: Layers,
+    title: "Aktualizacja rejestrów",
+    text: "Inwentaryzacje aktywów, dostawców i umów zgodnie z Twoimi procedurami.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Dokumentowanie incydentów",
+    text: "Ewidencja i klasyfikacja zdarzeń ICT według przyjętych zasad.",
+  },
+  {
+    icon: CalendarClock,
+    title: "Harmonogramy i testy",
+    text: "Harmonogramy testów odporności, uzgodnienie właścicieli i zebranie dokumentacji wyników.",
+  },
+  {
+    icon: Gauge,
+    title: "Zestawienia dla zarządu",
+    text: "Raporty dla zarządu: KRI, ryzyka ICT, wyniki testów i działania wymagające decyzji.",
+  },
+  {
+    icon: FileCheck2,
+    title: "Dowody na audyt i kontrolę",
+    text: "Uporządkowana dokumentacja wykonanych czynności.",
+  },
 ];
 
 export function Procedures() {
@@ -358,10 +384,26 @@ export function Procedures() {
 }
 
 const STEPS = [
-  { icon: MessagesSquare, title: "Bezpłatna konsultacja", text: "Poznajemy Twoją instytucję, obowiązki sprawozdawcze i obecny sposób pracy." },
-  { icon: ListChecks, title: "Zakres i harmonogram", text: "Ustalamy listę raportów, czynności, źródła danych i terminy." },
-  { icon: FileSpreadsheet, title: "Przygotowanie i walidacja", text: "Zbieramy dane, uzupełniamy formularze i sprawdzamy je przed wysyłką." },
-  { icon: UserRoundCog, title: "Zatwierdzenie i utrzymanie", text: "Przekazujesz gotowe pliki, a my pilnujemy kolejnych okresów." },
+  {
+    icon: MessagesSquare,
+    title: "Bezpłatna konsultacja",
+    text: "Poznajemy Twoją instytucję, obowiązki sprawozdawcze i obecny sposób pracy.",
+  },
+  {
+    icon: ListChecks,
+    title: "Zakres i harmonogram",
+    text: "Ustalamy listę raportów, czynności, źródła danych i terminy.",
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "Przygotowanie i walidacja",
+    text: "Zbieramy dane, uzupełniamy formularze i sprawdzamy je przed wysyłką.",
+  },
+  {
+    icon: UserRoundCog,
+    title: "Zatwierdzenie i utrzymanie",
+    text: "Zatwierdzasz materiały. Sposób wysyłki ustalamy razem, a my pilnujemy kolejnych terminów.",
+  },
 ];
 
 export function Process() {
@@ -369,7 +411,9 @@ export function Process() {
     <section className="mx-auto max-w-6xl px-5 py-20 lg:py-28">
       <div className="max-w-2xl">
         <p className="eyebrow text-teal">Jak to działa</p>
-        <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Cztery kroki do spokojnej sprawozdawczości</h2>
+        <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">
+          Cztery kroki do spokojnej sprawozdawczości
+        </h2>
       </div>
       <ol className="mt-12 grid gap-8 md:grid-cols-4">
         {STEPS.map(({ icon: Icon, title, text }, i) => (
@@ -414,7 +458,10 @@ export function Audience() {
         </div>
         <ul className="grid gap-3 sm:grid-cols-2">
           {AUDIENCE.map(({ icon: Icon, label }) => (
-            <li key={label} className="flex items-center gap-3 rounded-xl border bg-card px-4 py-4 shadow-soft">
+            <li
+              key={label}
+              className="flex items-center gap-3 rounded-xl border bg-card px-4 py-4 shadow-soft"
+            >
               <Icon className="size-5 shrink-0 text-teal" aria-hidden />
               <span className="text-sm font-medium">{label}</span>
             </li>
@@ -436,11 +483,11 @@ const FAQ = [
   },
   {
     q: "Kto przekazuje sprawozdanie do KNF?",
-    a: "Ustalamy to indywidualnie. Przygotowujemy kompletne i sprawdzone pliki, a ich przekazanie odbywa się zgodnie z zasadami i uprawnieniami obowiązującymi w Twojej instytucji.",
+    a: "Secureside przygotowuje i sprawdza materiały, a Twoja instytucja potwierdza dane i zatwierdza raport. Kto przekazuje go przez CRP lub SOI, ustalamy zgodnie z rodzajem sprawozdania i uprawnieniami. Odpowiedzialność instytucji oraz jej kierownictwa pozostaje po stronie klienta.",
   },
   {
     q: "Czy usługa to tylko raportowanie?",
-    a: "Nie. Realizujemy też czynności wynikające z Twoich polityk i procedur, np. przeglądy dokumentów, aktualizacje rejestrów, dokumentowanie zdarzeń czy przygotowanie zestawień dla zarządu.",
+    a: "Nie. Uzgodniony zakres może obejmować przeglądy dokumentów, aktualizację rejestrów, harmonogramy testów odporności i raporty dla zarządu. Testy techniczne oraz dostępność przy incydentach ustalamy osobno — stała obsługa raportowa nie oznacza dyżuru 24/7.",
   },
   {
     q: "Jak wygląda wycena?",
@@ -478,10 +525,11 @@ export function Footer() {
           <Logo />
           {details.length > 0 && <p>{details.join(" · ")}</p>}
         </div>
-        <div className="flex gap-6">
+        <div className="flex flex-wrap gap-6">
           <a href={SITE.privacyUrl} className="hover:text-ink-foreground">
             Polityka prywatności
           </a>
+          <PrivacySettingsButton />
           <span>© {new Date().getFullYear()} Secureside</span>
         </div>
       </div>

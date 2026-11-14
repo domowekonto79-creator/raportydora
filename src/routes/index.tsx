@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { LandingAnalytics } from "@/components/landing/Analytics";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ContactCta } from "@/components/landing/ContactCta";
@@ -13,7 +13,6 @@ import {
   Process,
   Reports,
 } from "@/components/landing/Sections";
-import { captureAttribution } from "@/lib/attribution";
 
 const TITLE = "DORA as a Service – sprawozdania do KNF (SPR-PF-26, 27, 18, 01) | Secureside";
 const DESCRIPTION =
@@ -34,12 +33,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  useEffect(() => {
-    captureAttribution();
-  }, []);
-
   return (
     <div className="min-h-screen">
+      <LandingAnalytics />
       <Header />
       <main>
         <Hero />
