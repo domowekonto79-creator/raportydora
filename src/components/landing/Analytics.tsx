@@ -1,86 +1,140 @@
 import { useEffect, useRef, useState } from "react";
-import { createAnalytics, type ContactSection } from "@/lib/landing-analytics.mjs";
+import {
+  createAnalytics,
+  readConsentCookie,
+  contactUrlWithAttribution,
+  type ContactSection,
+  type ConsentChoices,
+} from "@/lib/landing-analytics.mjs";
 import { SITE } from "@/lib/site";
 
-const KEY = "ss_lp_statistics_v1";
+const LEGACY_KEY = "ss_lp_statistics_v1";
 const OPEN_SETTINGS = "secureside:statistics-settings";
-type Choice = "yes" | "no";
-type AnalyticsWindow = Window & {
-  dataLayer?: unknown[];
-  gtag?: (...args: unknown[]) => void;
-  "ga-disable-G-LGMQ448HRY"?: boolean;
-};
+type AnalyticsWindow = Window & { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void };
 
-function readChoice(): Choice | null {
+function legacyStatistics(): boolean | null {
   try {
-    const value: unknown = JSON.parse(localStorage.getItem(KEY) ?? "null");
-    if (!value || typeof value !== "object") return null;
-    const saved = value as { choice?: unknown; expires?: unknown };
-    if (
-      (saved.choice === "yes" || saved.choice === "no") &&
-      typeof saved.expires === "number" &&
-      saved.expires > Date.now()
-    )
-      return saved.choice;
+    const value = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? "null");
+    if ((value?.choice === "yes" || value?.choice === "no") && value.expires > Date.now())
+      return value.choice === "yes";
   } catch {
-    /* Storage can be blocked; keep statistics disabled. */
+    /* Leave consent undecided if storage is unavailable. */
   }
   return null;
 }
 
 function browserClient() {
-  const analyticsWindow = window as AnalyticsWindow;
-  const layer = analyticsWindow.dataLayer ?? [];
-  analyticsWindow.dataLayer = layer;
-  analyticsWindow.gtag ??= function (..._args: unknown[]) {
-    // Google's tag queue uses an Arguments object for each command.
+  const target = window as AnalyticsWindow;
+  target.dataLayer ??= [];
+  target.gtag ??= function (..._args: unknown[]) {
+    // Google's command queue expects Arguments, not a plain array.
     // eslint-disable-next-line prefer-rest-params
-    layer.push(arguments);
+    target.dataLayer!.push(arguments);
   };
   let loaded = false;
+  const cookieHeader = document.cookie;
+  const hasV2 = cookieHeader.split(";").some((value) => value.trim().startsWith("ss_privacy_v2="));
+  const saved = readConsentCookie(cookieHeader);
+  const previousStatistics = hasV2 ? null : legacyStatistics();
+  if (hasV2)
+    try {
+      localStorage.removeItem(LEGACY_KEY);
+    } catch {
+      /* Storage can be unavailable. */
+    }
+  let choices: ConsentChoices = saved ?? {
+    statistics: previousStatistics === true,
+    advertising: false,
+  };
+  let cookieSignature = JSON.stringify(saved);
   const tracker = createAnalytics({
     enabled: import.meta.env.PROD,
-    hostname: window.location.hostname,
-    href: window.location.href,
+    hostname: location.hostname,
+    href: location.href,
     referrer: document.referrer,
-    send(...args) {
-      analyticsWindow.gtag?.(...args);
-    },
+    send: (...args) => target.gtag?.(...args),
     load(id) {
-      if (document.getElementById("secureside-ga4")) return;
       loaded = true;
+      if (
+        document.getElementById("secureside-ga4") ||
+        document.getElementById("secureside-google-tag")
+      )
+        return;
       const script = document.createElement("script");
-      script.id = "secureside-ga4";
+      script.id = "secureside-google-tag";
       script.async = true;
       script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
       document.head.appendChild(script);
     },
   });
-  const saved = readChoice();
-  if (saved) tracker.setConsent(saved === "yes");
+  const decorateLinks = () => {
+    const destination = contactUrlWithAttribution(SITE.contactUrl, location.href, choices);
+    for (const link of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
+      const url = new URL(link.href, location.href);
+      if (
+        url.origin === "https://secureside.pl" &&
+        url.pathname === "/kontakt/" &&
+        url.hash === "#wpcf7-f69-p214-o1"
+      )
+        link.href = destination;
+    }
+  };
+  tracker.setConsents(choices);
+  decorateLinks();
   return {
     tracker,
     saved,
-    choose(choice: Choice) {
+    initialStatistics: saved?.statistics ?? previousStatistics,
+    decorateLinks,
+    syncChoice() {
+      const latest = readConsentCookie(document.cookie);
+      const signature = JSON.stringify(latest);
+      if (signature === cookieSignature) return false;
+      cookieSignature = signature;
+      choices = latest ?? { statistics: false, advertising: false };
+      tracker.setConsents(choices);
+      decorateLinks();
       try {
-        localStorage.setItem(KEY, JSON.stringify({ choice, expires: Date.now() + 180 * 86400000 }));
+        localStorage.removeItem(LEGACY_KEY);
       } catch {
-        /* Apply the choice for this page even without storage. */
+        /* Keep denial even without storage. */
       }
-      tracker.setConsent(choice === "yes");
-      if (choice === "no" && loaded) {
-        analyticsWindow["ga-disable-G-LGMQ448HRY"] = true;
-        for (const name of ["_ga", "_ga_LGMQ448HRY"]) {
-          for (const domain of ["", window.location.hostname, ".secureside.pl"]) {
-            document.cookie =
-              name +
-              "=; Max-Age=0; Path=/" +
-              (domain ? "; Domain=" + domain : "") +
-              "; SameSite=Lax; Secure";
+      location.reload();
+      return true;
+    },
+    choose(next: ConsentChoices) {
+      const withdrawal =
+        (choices.statistics && !next.statistics) || (choices.advertising && !next.advertising);
+      choices = next;
+      const sharedDomain = ["dora.secureside.pl", "pelnomocnik.secureside.pl"].includes(
+        location.hostname,
+      );
+      document.cookie =
+        `ss_privacy_v2=s${Number(next.statistics)}a${Number(next.advertising)}; Max-Age=15552000; Path=/; SameSite=Lax` +
+        (sharedDomain ? "; Secure; Domain=secureside.pl" : "");
+      try {
+        localStorage.removeItem(LEGACY_KEY);
+      } catch {
+        /* Apply for this page even without persistence. */
+      }
+      cookieSignature = JSON.stringify(readConsentCookie(document.cookie));
+      tracker.setConsents(next);
+      decorateLinks();
+      if (withdrawal) {
+        for (const pair of document.cookie.split(";")) {
+          const name = pair.split("=")[0]?.trim() ?? "";
+          if (
+            (!next.statistics && (name === "_ga" || name.startsWith("_ga_"))) ||
+            (!next.advertising && name.startsWith("_gcl_"))
+          ) {
+            for (const domain of ["", location.hostname, ".secureside.pl"])
+              document.cookie =
+                name +
+                "=; Max-Age=0; Path=/; SameSite=Lax; Secure" +
+                (domain ? "; Domain=" + domain : "");
           }
         }
-        // Remove the loaded tag and its automatic measurements by reopening without it.
-        window.location.reload();
+        if (loaded) location.reload();
       }
     },
   };
@@ -91,85 +145,156 @@ function sectionFor(link: Element): ContactSection {
   if (link.closest("footer")) return "footer";
   const section = link.closest("section");
   if (section?.id === "kontakt") return "contact";
-  if (section?.id === "raporty") return "scope";
+  if (["raporty", "zakres"].includes(section?.id ?? "")) return "scope";
   return "hero";
 }
 
 export function LandingAnalytics() {
   const client = useRef<ReturnType<typeof browserClient> | null>(null);
   const [open, setOpen] = useState(false);
+  const [statistics, setStatistics] = useState<boolean | null>(null);
+  const [advertising, setAdvertising] = useState<boolean | null>(null);
   useEffect(() => {
     client.current ??= browserClient();
-    setOpen(!client.current.saved);
+    const current = client.current;
+    setStatistics(current.initialStatistics);
+    setAdvertising(current.saved?.advertising ?? null);
+    setOpen(!current.saved);
     const reopen = () => setOpen(true);
+    const sync = () => {
+      current.syncChoice();
+    };
+    const visible = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    const cookieStore = (window as Window & { cookieStore?: EventTarget }).cookieStore;
     const click = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
       const link = event.target.closest("a");
       if (!link) return;
       const href = link.getAttribute("href") ?? "";
-      if (href === SITE.contactUrl)
-        client.current?.tracker.track("contact_click", {
+      const url = new URL(link.href, location.href);
+      if (url.origin === "https://secureside.pl" && url.pathname === "/kontakt/") {
+        if (current.syncChoice()) {
+          event.preventDefault();
+          return;
+        }
+        current.decorateLinks();
+        current.tracker.track("contact_click", {
           section: sectionFor(link),
           method: "external_form",
         });
-      else if (href.startsWith("tel:"))
-        client.current?.tracker.track("contact_click", {
-          section: sectionFor(link),
-          method: "phone",
-        });
+      } else if (href.startsWith("tel:"))
+        current.tracker.track("contact_click", { section: sectionFor(link), method: "phone" });
       else if (href.startsWith("mailto:"))
-        client.current?.tracker.track("contact_click", {
-          section: sectionFor(link),
-          method: "email",
-        });
+        current.tracker.track("contact_click", { section: sectionFor(link), method: "email" });
     };
     window.addEventListener(OPEN_SETTINGS, reopen);
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", visible);
+    cookieStore?.addEventListener("change", sync);
+    const syncTimer = window.setInterval(sync, 1000);
     document.addEventListener("click", click);
     return () => {
       window.removeEventListener(OPEN_SETTINGS, reopen);
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", visible);
+      cookieStore?.removeEventListener("change", sync);
+      window.clearInterval(syncTimer);
       document.removeEventListener("click", click);
     };
   }, []);
-  const choose = (value: Choice) => {
-    client.current?.choose(value);
-    setOpen(false);
-  };
   if (!open) return null;
+  const choiceClass =
+    "rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary aria-pressed:bg-secondary aria-pressed:ring-2 aria-pressed:ring-teal";
   return (
     <section
       role="dialog"
       aria-modal="false"
       aria-labelledby="statistics-title"
-      className="fixed inset-x-4 bottom-4 z-50 rounded-xl border bg-card p-4 text-card-foreground shadow-float sm:left-auto sm:right-5 sm:w-80"
+      className="fixed inset-x-4 bottom-4 z-50 max-h-[85vh] overflow-y-auto rounded-xl border bg-card p-4 text-card-foreground shadow-float sm:left-auto sm:right-5 sm:w-96"
     >
       <h2 id="statistics-title" className="text-sm font-semibold">
-        Statystyki
+        Ustawienia prywatności
       </h2>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-        Czy możemy mierzyć odwiedziny, aby ulepszać stronę? Wybór możesz zmienić w stopce.
+        Wybierz, na jakie pomiary się zgadzasz. Formularz działa także po odmowie. Wybór możesz
+        zmienić w stopce.
       </p>
+      <fieldset className="mt-4">
+        <legend className="text-xs font-semibold">Statystyki odwiedzin</legend>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Google Analytics pomaga nam ulepszać stronę.
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            aria-label="Zezwól na statystyki"
+            aria-pressed={statistics === true}
+            onClick={() => setStatistics(true)}
+            className={choiceClass}
+          >
+            Zezwól
+          </button>
+          <button
+            type="button"
+            aria-label="Odrzuć statystyki"
+            aria-pressed={statistics === false}
+            onClick={() => setStatistics(false)}
+            className={choiceClass}
+          >
+            Odrzuć
+          </button>
+        </div>
+      </fieldset>
+      <fieldset className="mt-4">
+        <legend className="text-xs font-semibold">Pomiar skuteczności reklam Google Ads</legend>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Pozwala przypisać zapytanie do reklamy. Bez personalizacji reklam i bez przesyłania treści
+          formularza.
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            aria-label="Zezwól na pomiar reklam"
+            aria-pressed={advertising === true}
+            onClick={() => setAdvertising(true)}
+            className={choiceClass}
+          >
+            Zezwól
+          </button>
+          <button
+            type="button"
+            aria-label="Odrzuć pomiar reklam"
+            aria-pressed={advertising === false}
+            onClick={() => setAdvertising(false)}
+            className={choiceClass}
+          >
+            Odrzuć
+          </button>
+        </div>
+      </fieldset>
       <a
         href={SITE.statisticsUrl}
-        className="mt-2 inline-block text-xs text-teal underline underline-offset-2"
+        className="mt-3 inline-block text-xs text-teal underline underline-offset-2"
       >
         Informacje o prywatności
       </a>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => choose("yes")}
-          className="rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary"
-        >
-          Zezwól
-        </button>
-        <button
-          type="button"
-          onClick={() => choose("no")}
-          className="rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary"
-        >
-          Odrzuć
-        </button>
-      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Wybór zapamiętujemy na 180 dni na secureside.pl i jej stronach usług.
+      </p>
+      <button
+        type="button"
+        disabled={statistics === null || advertising === null}
+        onClick={() => {
+          if (statistics === null || advertising === null) return;
+          client.current?.choose({ statistics, advertising });
+          setOpen(false);
+        }}
+        className="mt-3 w-full rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary disabled:opacity-50"
+      >
+        Zapisz wybór
+      </button>
     </section>
   );
 }
@@ -181,7 +306,7 @@ export function PrivacySettingsButton() {
       className="text-left hover:text-ink-foreground"
       onClick={() => window.dispatchEvent(new Event(OPEN_SETTINGS))}
     >
-      Ustawienia statystyk
+      Ustawienia prywatności
     </button>
   );
 }

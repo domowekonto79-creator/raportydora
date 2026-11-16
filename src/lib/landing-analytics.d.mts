@@ -11,6 +11,7 @@ export interface AnalyticsEnvironment {
 export interface LandingTracker {
   mode: "production" | "preview";
   setConsent: (allowed: boolean) => void;
+  setConsents: (choices: ConsentChoices) => void;
   track: (
     name: string,
     params?: {
@@ -25,3 +26,13 @@ export interface LandingTracker {
   }) => void;
 }
 export function createAnalytics(environment: AnalyticsEnvironment): LandingTracker;
+export interface ConsentChoices {
+  statistics: boolean;
+  advertising: boolean;
+}
+export function readConsentCookie(cookieHeader: string): ConsentChoices | null;
+export function contactUrlWithAttribution(
+  contactUrl: string,
+  sourceHref: string,
+  choices: ConsentChoices,
+): string;

@@ -12,7 +12,10 @@ export function createAnalytics(env) {
     landing_variant: "approved_live_v1",
   };
   let consent = false,
-    started = false;
+    advertising = false,
+    started = false,
+    adsStarted = false,
+    initialized = false;
   const acceptedSubmissions = new Set();
   const denied = {
     analytics_storage: "denied",
@@ -35,10 +38,11 @@ export function createAnalytics(env) {
         for (const [key, values] of Object.entries(allowed))
           if (values.includes(source.searchParams.get(key)))
             clean.searchParams.set(key, source.searchParams.get(key));
-        for (const key of ["gclid", "wbraid", "gbraid"]) {
-          const value = source.searchParams.get(key);
-          if (value && /^[A-Za-z0-9_.-]{1,300}$/.test(value)) clean.searchParams.set(key, value);
-        }
+        if (advertising)
+          for (const key of ["gclid", "wbraid", "gbraid"]) {
+            const value = source.searchParams.get(key);
+            if (value && /^[A-Za-z0-9_.-]{1,300}$/.test(value)) clean.searchParams.set(key, value);
+          }
       }
       return clean.href;
     } catch {
@@ -54,24 +58,23 @@ export function createAnalytics(env) {
       page_referrer: safeUrl(env.referrer),
     });
   }
-  return {
-    mode: production ? "production" : "preview",
-    setConsent(allowed) {
-      consent = allowed === true;
-      if (!production) return;
-      if (!consent) {
-        if (started) env.send("consent", "update", denied);
-        return;
-      }
-      if (started) {
-        env.send("consent", "update", { ...denied, analytics_storage: "granted" });
-        return;
-      }
-      started = true;
+  function applyConsents() {
+    if (!production) return;
+    if (!initialized && !consent && !advertising) return;
+    if (!initialized) {
+      initialized = true;
       env.send("consent", "default", denied);
-      env.send("consent", "update", { ...denied, analytics_storage: "granted" });
       env.send("js", new Date());
-      env.send("config", measurementId, {
+    }
+    env.send("consent", "update", {
+      ...denied,
+      analytics_storage: consent ? "granted" : "denied",
+      ad_storage: advertising ? "granted" : "denied",
+      ad_user_data: advertising ? "granted" : "denied",
+    });
+    if (advertising && !adsStarted) {
+      adsStarted = true;
+      env.send("config", "AW-18576386485", {
         send_page_view: false,
         cookie_domain: "secureside.pl",
         cookie_expires: 180 * 86400,
@@ -80,8 +83,32 @@ export function createAnalytics(env) {
         page_location: safeUrl(env.href, true),
         page_referrer: safeUrl(env.referrer),
       });
-      sendEvent("page_view");
-      env.load(measurementId);
+      env.load("AW-18576386485");
+    }
+    if (!consent || started) return;
+    started = true;
+    env.send("config", measurementId, {
+      send_page_view: false,
+      cookie_domain: "secureside.pl",
+      cookie_expires: 180 * 86400,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
+      page_location: safeUrl(env.href, true),
+      page_referrer: safeUrl(env.referrer),
+    });
+    sendEvent("page_view");
+    env.load(measurementId);
+  }
+  return {
+    mode: production ? "production" : "preview",
+    setConsent(allowed) {
+      consent = allowed === true;
+      applyConsents();
+    },
+    setConsents(choices) {
+      consent = choices.statistics === true;
+      advertising = choices.advertising === true;
+      applyConsents();
     },
     track(name, params = {}) {
       if (!["cta_click", "contact_click", "form_start"].includes(name)) return;
@@ -111,4 +138,42 @@ export function createAnalytics(env) {
       sendEvent("generate_lead", { method: "onsite_form" });
     },
   };
+}
+
+export function readConsentCookie(cookieHeader) {
+  const values = String(cookieHeader)
+    .split(";")
+    .map((x) => x.trim())
+    .filter((x) => x.startsWith("ss_privacy_v2="));
+  const match = values.length === 1 ? /^ss_privacy_v2=s([01])a([01])$/.exec(values[0]) : null;
+  return match ? { statistics: match[1] === "1", advertising: match[2] === "1" } : null;
+}
+
+export function contactUrlWithAttribution(contactUrl, sourceHref, choices) {
+  if (contactUrl !== "https://secureside.pl/kontakt/#wpcf7-f69-p214-o1") return contactUrl;
+  if (!choices.statistics && !choices.advertising) return contactUrl;
+  try {
+    const source = new URL(sourceHref),
+      destination = new URL(contactUrl);
+    if (!["dora.secureside.pl", "pelnomocnik.secureside.pl"].includes(source.hostname))
+      return contactUrl;
+    const allowed = {
+      utm_source: ["google"],
+      utm_medium: ["cpc"],
+      utm_campaign: ["dora_sprawozdawczosc", "pelnomocnik_iso27001"],
+      utm_content: ["tekst_1", "tekst_2", "landing_v1"],
+    };
+    for (const [key, values] of Object.entries(allowed))
+      if (values.includes(source.searchParams.get(key)))
+        destination.searchParams.set(key, source.searchParams.get(key));
+    if (choices.advertising)
+      for (const key of ["gclid", "wbraid", "gbraid"]) {
+        const value = source.searchParams.get(key);
+        if (value && /^[A-Za-z0-9_.-]{1,300}$/.test(value))
+          destination.searchParams.set(key, value);
+      }
+    return destination.href;
+  } catch {
+    return contactUrl;
+  }
 }
