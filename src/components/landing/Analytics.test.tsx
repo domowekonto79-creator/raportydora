@@ -1,75 +1,58 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { LandingAnalytics, PrivacySettingsButton } from "./Analytics";
 
-const key = "ss_lp_statistics_v1";
-beforeEach(() => localStorage.clear());
-afterEach(() => {
-  cleanup();
-  document.getElementById("secureside-ga4")?.remove();
-  vi.unstubAllEnvs();
+beforeEach(() => {
+  localStorage.clear();
+  document.cookie = "ss_privacy_v2=; Max-Age=0; Path=/";
 });
+afterEach(cleanup);
 
-describe("Statistics consent", () => {
-  it("loads GA only after consent on a production host and reloads after withdrawal", () => {
-    const originalLocation = Object.getOwnPropertyDescriptor(window, "location")!;
-    const reload = vi.fn();
-    vi.stubEnv("PROD", true);
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { hostname: "dora.secureside.pl", href: "https://dora.secureside.pl/", reload },
-    });
-    try {
-      render(
-        <>
-          <LandingAnalytics />
-          <PrivacySettingsButton />
-        </>,
-      );
-      expect(document.getElementById("secureside-ga4")).toBeNull();
-      fireEvent.click(screen.getByRole("button", { name: "Zezwól" }));
-      expect(document.querySelector<HTMLScriptElement>("#secureside-ga4")?.src).toBe(
-        "https://www.googletagmanager.com/gtag/js?id=G-LGMQ448HRY",
-      );
-      fireEvent.click(screen.getByRole("button", { name: "Ustawienia statystyk" }));
-      fireEvent.click(screen.getByRole("button", { name: "Odrzuć" }));
-      expect(reload).toHaveBeenCalledOnce();
-      expect(JSON.parse(localStorage.getItem(key)!).choice).toBe("no");
-    } finally {
-      Object.defineProperty(window, "location", originalLocation);
-    }
-  });
-  it("offers a discreet choice without loading Google before consent", () => {
+describe("Privacy settings", () => {
+  it("starts with a single opener and opens the preferences without granting consent", () => {
     render(<LandingAnalytics />);
-    expect(screen.getByRole("heading", { name: "Statystyki" })).toBeInTheDocument();
-    expect(screen.queryByText(/Google Analytics/)).not.toBeInTheDocument();
-    expect(document.querySelector('script[src*="googletagmanager.com"]')).toBeNull();
-  });
-  it("remembers acceptance but never loads the production tag on local/preview", () => {
-    render(<LandingAnalytics />);
-    fireEvent.click(screen.getByRole("button", { name: "Zezwól" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem(key)!).choice).toBe("yes");
+    const opener = screen.getByRole("button", { name: "Ustawienia prywatności" });
+    fireEvent.click(opener);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Zapisz wybór" })).toBeDisabled();
+    expect(document.cookie).not.toContain("ss_privacy_v2=");
     expect(document.querySelector('script[src*="googletagmanager.com"]')).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Zezwól na statystyki" }));
+    fireEvent.click(screen.getByRole("button", { name: "Zamknij ustawienia prywatności" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(opener);
+    fireEvent.click(opener);
+    expect(screen.getByRole("button", { name: "Zezwól na statystyki" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
   });
-  it("allows reopening and refusing previously accepted statistics", () => {
+
+  it("keeps the footer entry available after saving independent choices", () => {
     render(
       <>
         <LandingAnalytics />
-        <PrivacySettingsButton />
+        <footer>
+          <PrivacySettingsButton />
+        </footer>
       </>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Zezwól" }));
-    fireEvent.click(screen.getByRole("button", { name: "Ustawienia statystyk" }));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Odrzuć" }));
-    expect(JSON.parse(localStorage.getItem(key)!).choice).toBe("no");
+    const footer = screen.getByRole("contentinfo");
+    const footerButton = footer.querySelector("button")!;
+    fireEvent.click(footerButton);
+    fireEvent.click(screen.getByRole("button", { name: "Odrzuć statystyki" }));
+    fireEvent.click(screen.getByRole("button", { name: "Zezwól na pomiar reklam" }));
+    fireEvent.click(screen.getByRole("button", { name: "Zapisz wybór" }));
+    expect(document.cookie).toContain("ss_privacy_v2=s0a1");
+    expect(screen.getAllByRole("button", { name: "Ustawienia prywatności" })).toEqual([
+      footerButton,
+    ]);
     expect(document.querySelector('script[src*="googletagmanager.com"]')).toBeNull();
-  });
-  it("does not ask again after a valid saved refusal", () => {
-    localStorage.setItem(key, JSON.stringify({ choice: "no", expires: Date.now() + 86400000 }));
-    render(<LandingAnalytics />);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(document.querySelector('script[src*="googletagmanager.com"]')).toBeNull();
+    fireEvent.click(footerButton);
+    expect(screen.getByRole("button", { name: "Odrzuć statystyki" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });

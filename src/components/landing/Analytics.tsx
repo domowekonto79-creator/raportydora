@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 import {
   createAnalytics,
   readConsentCookie,
@@ -151,16 +152,30 @@ function sectionFor(link: Element): ContactSection {
 
 export function LandingAnalytics() {
   const client = useRef<ReturnType<typeof browserClient> | null>(null);
+  const title = useRef<HTMLHeadingElement>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
+  const savedChoice = useRef<{ statistics: boolean | null; advertising: boolean | null }>({
+    statistics: null,
+    advertising: null,
+  });
+  const [showShortcut, setShowShortcut] = useState(false);
   const [open, setOpen] = useState(false);
   const [statistics, setStatistics] = useState<boolean | null>(null);
   const [advertising, setAdvertising] = useState<boolean | null>(null);
   useEffect(() => {
     client.current ??= browserClient();
     const current = client.current;
-    setStatistics(current.initialStatistics);
-    setAdvertising(current.saved?.advertising ?? null);
-    setOpen(!current.saved);
-    const reopen = () => setOpen(true);
+    savedChoice.current = {
+      statistics: current.initialStatistics,
+      advertising: current.saved?.advertising ?? null,
+    };
+    setShowShortcut(!current.saved);
+    const reopen = (event: Event) => {
+      opener.current = (event as CustomEvent<HTMLButtonElement>).detail;
+      setStatistics(savedChoice.current.statistics);
+      setAdvertising(savedChoice.current.advertising);
+      setOpen(true);
+    };
     const sync = () => {
       current.syncChoice();
     };
@@ -204,107 +219,150 @@ export function LandingAnalytics() {
       document.removeEventListener("click", click);
     };
   }, []);
-  if (!open) return null;
+  useEffect(() => {
+    if (open) title.current?.focus({ preventScroll: true });
+  }, [open]);
+
+  function close() {
+    setOpen(false);
+    opener.current?.focus({ preventScroll: true });
+  }
+
   const choiceClass =
     "rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary aria-pressed:bg-secondary aria-pressed:ring-2 aria-pressed:ring-teal";
   return (
-    <section
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="statistics-title"
-      className="fixed inset-x-4 bottom-4 z-50 max-h-[85vh] overflow-y-auto rounded-xl border bg-card p-4 text-card-foreground shadow-float sm:left-auto sm:right-5 sm:w-96"
-    >
-      <h2 id="statistics-title" className="text-sm font-semibold">
-        Ustawienia prywatności
-      </h2>
-      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-        Wybierz, na jakie pomiary się zgadzasz. Formularz działa także po odmowie. Wybór możesz
-        zmienić w stopce.
-      </p>
-      <fieldset className="mt-4">
-        <legend className="text-xs font-semibold">Statystyki odwiedzin</legend>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Google Analytics pomaga nam ulepszać stronę.
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
+    <>
+      {showShortcut && (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={open ? close : openPrivacySettings}
+          className="fixed bottom-3 left-3 z-50 rounded-lg border bg-card px-3 py-2 text-xs font-medium text-card-foreground shadow-float hover:bg-secondary"
+        >
+          Ustawienia prywatności
+        </button>
+      )}
+      {open && (
+        <section
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="statistics-title"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") close();
+          }}
+          className="fixed inset-x-3 bottom-14 z-50 max-h-[75dvh] overflow-y-auto rounded-xl border bg-card p-4 text-card-foreground shadow-float sm:left-3 sm:right-auto sm:w-96"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 ref={title} id="statistics-title" tabIndex={-1} className="text-sm font-semibold">
+              Ustawienia prywatności
+            </h2>
+            <button
+              type="button"
+              aria-label="Zamknij ustawienia prywatności"
+              onClick={close}
+              className="rounded-md p-2 hover:bg-secondary"
+            >
+              <X aria-hidden="true" className="size-4" />
+            </button>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            Wybierz, na jakie pomiary się zgadzasz. Formularz działa także po odmowie. Wybór możesz
+            zmienić w stopce.
+          </p>
+          <fieldset className="mt-4">
+            <legend className="text-xs font-semibold">Statystyki odwiedzin</legend>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Google Analytics pomaga nam ulepszać stronę.
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                aria-label="Zezwól na statystyki"
+                aria-pressed={statistics === true}
+                onClick={() => setStatistics(true)}
+                className={choiceClass}
+              >
+                Zezwól
+              </button>
+              <button
+                type="button"
+                aria-label="Odrzuć statystyki"
+                aria-pressed={statistics === false}
+                onClick={() => setStatistics(false)}
+                className={choiceClass}
+              >
+                Odrzuć
+              </button>
+            </div>
+          </fieldset>
+          <fieldset className="mt-4">
+            <legend className="text-xs font-semibold">Pomiar skuteczności reklam Google Ads</legend>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pozwala przypisać zapytanie do reklamy. Bez personalizacji reklam i bez przesyłania
+              treści formularza.
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                aria-label="Zezwól na pomiar reklam"
+                aria-pressed={advertising === true}
+                onClick={() => setAdvertising(true)}
+                className={choiceClass}
+              >
+                Zezwól
+              </button>
+              <button
+                type="button"
+                aria-label="Odrzuć pomiar reklam"
+                aria-pressed={advertising === false}
+                onClick={() => setAdvertising(false)}
+                className={choiceClass}
+              >
+                Odrzuć
+              </button>
+            </div>
+          </fieldset>
+          <a
+            href={SITE.statisticsUrl}
+            className="mt-3 inline-block text-xs text-teal underline underline-offset-2"
+          >
+            Informacje o prywatności
+          </a>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Wybór zapamiętujemy na 180 dni na secureside.pl i jej stronach usług.
+          </p>
           <button
             type="button"
-            aria-label="Zezwól na statystyki"
-            aria-pressed={statistics === true}
-            onClick={() => setStatistics(true)}
-            className={choiceClass}
+            disabled={statistics === null || advertising === null}
+            onClick={() => {
+              if (statistics === null || advertising === null) return;
+              client.current?.choose({ statistics, advertising });
+              savedChoice.current = { statistics, advertising };
+              setShowShortcut(false);
+              close();
+            }}
+            className="mt-3 w-full rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary disabled:opacity-50"
           >
-            Zezwól
+            Zapisz wybór
           </button>
-          <button
-            type="button"
-            aria-label="Odrzuć statystyki"
-            aria-pressed={statistics === false}
-            onClick={() => setStatistics(false)}
-            className={choiceClass}
-          >
-            Odrzuć
-          </button>
-        </div>
-      </fieldset>
-      <fieldset className="mt-4">
-        <legend className="text-xs font-semibold">Pomiar skuteczności reklam Google Ads</legend>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Pozwala przypisać zapytanie do reklamy. Bez personalizacji reklam i bez przesyłania treści
-          formularza.
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            aria-label="Zezwól na pomiar reklam"
-            aria-pressed={advertising === true}
-            onClick={() => setAdvertising(true)}
-            className={choiceClass}
-          >
-            Zezwól
-          </button>
-          <button
-            type="button"
-            aria-label="Odrzuć pomiar reklam"
-            aria-pressed={advertising === false}
-            onClick={() => setAdvertising(false)}
-            className={choiceClass}
-          >
-            Odrzuć
-          </button>
-        </div>
-      </fieldset>
-      <a
-        href={SITE.statisticsUrl}
-        className="mt-3 inline-block text-xs text-teal underline underline-offset-2"
-      >
-        Informacje o prywatności
-      </a>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Wybór zapamiętujemy na 180 dni na secureside.pl i jej stronach usług.
-      </p>
-      <button
-        type="button"
-        disabled={statistics === null || advertising === null}
-        onClick={() => {
-          if (statistics === null || advertising === null) return;
-          client.current?.choose({ statistics, advertising });
-          setOpen(false);
-        }}
-        className="mt-3 w-full rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-secondary disabled:opacity-50"
-      >
-        Zapisz wybór
-      </button>
-    </section>
+        </section>
+      )}
+    </>
   );
+}
+
+function openPrivacySettings(event: React.MouseEvent<HTMLButtonElement>) {
+  window.dispatchEvent(new CustomEvent(OPEN_SETTINGS, { detail: event.currentTarget }));
 }
 
 export function PrivacySettingsButton() {
   return (
     <button
       type="button"
+      aria-haspopup="dialog"
       className="text-left hover:text-ink-foreground"
-      onClick={() => window.dispatchEvent(new Event(OPEN_SETTINGS))}
+      onClick={openPrivacySettings}
     >
       Ustawienia prywatności
     </button>
