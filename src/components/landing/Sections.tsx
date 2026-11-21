@@ -356,7 +356,10 @@ const PROCEDURES = [
 
 export function Procedures() {
   return (
-    <section className="relative overflow-hidden bg-ink-gradient text-ink-foreground">
+    <section
+      id="stala-obsluga-dora"
+      className="relative scroll-mt-8 overflow-hidden bg-ink-gradient text-ink-foreground"
+    >
       <div className="pointer-events-none absolute inset-0 bg-sheet-grid" aria-hidden />
       <div className="relative mx-auto max-w-6xl px-5 py-20 lg:py-28">
         <div className="max-w-2xl">
